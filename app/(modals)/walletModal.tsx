@@ -17,36 +17,39 @@ import {
   getProfileImage,
   uploadImageToImageKit,
 } from "@/services/imageService";
-import { Pencil } from "phosphor-react-native";
+import { Pencil, Trash } from "phosphor-react-native";
 import Typo from "@/components/Typo";
 import Input from "@/components/Input";
-import { UserDataType } from "@/types";
+import { UserDataType, WalletType } from "@/types";
 import Button from "@/components/Button";
 import { useAuth } from "@/contexts/authContext";
 import { updateUser } from "@/services/userService";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { createOrUpdateWallet, deleteWallet } from "@/services/walletService";
 
-const ProfileModal = () => {
-  const [userData, setUserData] = useState<UserDataType>({
+const WalletModal = () => {
+  const [wallet, setWallet] = useState<WalletType>({
     name: "",
     image: null,
   });
-  const { user, updateUserData } = useAuth();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
-  console.log("User Data", userData);
+  const params = useLocalSearchParams();
 
   useEffect(() => {
-    setUserData({
-      name: user?.name || "",
-      image: user?.image || null,
-    });
-  }, [user]);
+    if (params?.id || params?.name) {
+      setWallet((prev) => ({
+        ...prev,
+        id: params.id as string,
+        name: params.name as string,
+      }));
+    }
+  }, []);
 
   const onSubmit = async () => {
-    const { name, image } = userData;
+    const { name, image } = wallet;
 
     if (!name.trim()) {
       Alert.alert("User", "Please fill all the fields");
@@ -55,77 +58,61 @@ const ProfileModal = () => {
 
     setIsLoading(true);
 
-    let imageUrl = user?.image;
+    //include wallet id if update
+    const data: WalletType = {
+      name,
+      image,
+      uid: user?.uid,
+    };
+    if (params?.id) {
+      data.id = params?.id as string;
+    }
+    // Update Firebase
+    const res = await createOrUpdateWallet(data);
 
-    try {
-      // Upload only if image is newly picked (has local uri)
-      if (image && "uri" in image) {
-        const response = await fetch(image.uri);
-        const blob = await response.blob();
-
-        const reader = new FileReader();
-        const base64 = await new Promise<string>((resolve, reject) => {
-          reader.onloadend = () => {
-            const base64Data = (reader.result as string).split(",")[1];
-            resolve(base64Data);
-          };
-          reader.onerror = () => reject("Failed to read image");
-          reader.readAsDataURL(blob);
-        });
-
-        const uploadRes = await uploadImageToImageKit(
-          base64,
-          `profile_${user?.uid}.jpg`
-        );
-
-        if (!uploadRes.success || !uploadRes.url) {
-          Alert.alert("Upload", uploadRes.msg || "Upload failed");
-          setIsLoading(false);
-          return;
-        }
-
-        imageUrl = uploadRes.url;
-      }
-
-      // Update Firebase
-      const updateRes = await updateUser(user?.uid!, {
-        name,
-        image: imageUrl,
-      });
-
-      if (updateRes.success) {
-        updateUserData(user?.uid!);
-        router.back();
-      } else {
-        Alert.alert("User", updateRes.msg);
-      }
-    } catch (error) {
-      console.error("Submission error", error);
-      Alert.alert("Error", "Something went wrong");
-    } finally {
-      setIsLoading(false);
+    setIsLoading(false);
+    if (res.success) {
+      router.back();
+    } else {
+      Alert.alert("Wallet", res.msg);
     }
   };
 
-  const onPickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      // allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.5,
-    });
-
-    console.log(result);
-    if (!result.canceled) {
-      setUserData({ ...userData, image: result.assets[0] });
+  const onDelete = async () => {
+    if (!params?.id) return;
+    setIsLoading(true);
+    const res = await deleteWallet(params?.id as string);
+    if (res.success) {
+      router.back();
+    } else {
+      Alert.alert("Wallet", res.msg);
     }
+  };
+
+  const showDeleteAlert = () => {
+    Alert.alert(
+      "Confirm",
+      "Are you sure you want to delete this wallet? \n This action will remove all the related transactions",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+          onPress: () => console.log("cancel delete wallet"),
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: onDelete,
+        },
+      ]
+    );
   };
 
   return (
     <ModalWrapper>
       <View style={styles.container}>
         <Header
-          title="Update Profile"
+          title={params?.id ? "Update Wallet" : "Add Wallet"}
           leftIcon={<BackButton />}
           style={{ marginBottom: spacingY._10 }}
         />
@@ -135,34 +122,40 @@ const ProfileModal = () => {
           contentContainerStyle={styles.form}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.avatarContainer}>
-            <Image
-              style={styles.avatar}
-              source={getProfileImage(userData.image)}
-              contentFit="cover"
-              transition={100}
-            />
-            <TouchableOpacity onPress={onPickImage} style={styles.editIcon}>
-              <Pencil size={verticalScale(20)} color={colors.neutral800} />
-            </TouchableOpacity>
-          </View>
-
           <View style={styles.inputContainer}>
             <Typo color={colors.neutral200}>Name</Typo>
             <Input
-              placeholder="Name"
-              value={userData.name}
-              onChangeText={(value) =>
-                setUserData({ ...userData, name: value })
-              }
+              placeholder="Wallet Name"
+              value={wallet.name}
+              onChangeText={(value) => setWallet({ ...wallet, name: value })}
             />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Typo color={colors.neutral200}>Wallet Icon</Typo>
+            {/* wallet icon select instead of image */}
           </View>
         </ScrollView>
 
         <View style={styles.footer}>
+          {params?.id && !isLoading && (
+            <Button
+              onPress={showDeleteAlert}
+              style={{
+                backgroundColor: colors.rose,
+                paddingHorizontal: spacingX._15,
+              }}
+            >
+              <Trash
+                size={verticalScale(20)}
+                color={colors.white}
+                weight="bold"
+              />
+            </Button>
+          )}
           <Button loading={isLoading} onPress={onSubmit} style={{ flex: 1 }}>
             <Typo color={colors.black} fontWeight={"700"}>
-              Update
+              {params?.id ? "Update Wallet" : "Add Wallet"}
             </Typo>
           </Button>
         </View>
@@ -171,12 +164,13 @@ const ProfileModal = () => {
   );
 };
 
-export default ProfileModal;
+export default WalletModal;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: spacingY._20,
+    paddingBottom: spacingY._10,
   },
 
   scrollContainer: {

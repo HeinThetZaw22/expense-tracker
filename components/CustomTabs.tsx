@@ -15,34 +15,34 @@ export default function CustomTabs({
   navigation,
 }: BottomTabBarProps) {
   const tabBarIcons: any = {
-    index: (isFocused: boolean) => {
+    index: (isFocused: boolean) => (
       <House
         size={verticalScale(30)}
         weight={isFocused ? "fill" : "regular"}
         color={isFocused ? colors.primary : colors.neutral400}
-      />;
-    },
-    statistics: (isFocused: boolean) => {
+      />
+    ),
+    statistics: (isFocused: boolean) => (
       <ChartBar
         size={verticalScale(30)}
         weight={isFocused ? "fill" : "regular"}
         color={isFocused ? colors.primary : colors.neutral400}
-      />;
-    },
-    wallet: (isFocused: boolean) => {
+      />
+    ),
+    wallet: (isFocused: boolean) => (
       <Wallet
         size={verticalScale(30)}
         weight={isFocused ? "fill" : "regular"}
         color={isFocused ? colors.primary : colors.neutral400}
-      />;
-    },
-    profile: (isFocused: boolean) => {
+      />
+    ),
+    profile: (isFocused: boolean) => (
       <User
         size={verticalScale(30)}
         weight={isFocused ? "fill" : "regular"}
         color={isFocused ? colors.primary : colors.neutral400}
-      />;
-    },
+      />
+    ),
   };
   return (
     <View style={styles.tabBar}>

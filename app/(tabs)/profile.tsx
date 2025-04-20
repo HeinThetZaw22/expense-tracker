@@ -24,7 +24,7 @@ const Profile = () => {
     {
       title: "Edit Profile",
       icon: <User size={26} color={colors.white} weight="fill" />,
-      routeName: "/(modals)/profile",
+      routeName: "/(modals)/profileModal",
       bgColor: "#6366f1",
     },
     {
