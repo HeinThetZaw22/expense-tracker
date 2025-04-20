@@ -59,7 +59,7 @@ const WalletModal = () => {
     setIsLoading(true);
 
     //include wallet id if update
-    const data: WalletType = {
+    let data: WalletType = {
       name,
       image,
       uid: user?.uid,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacingX._20,
+    // paddingHorizontal: spacingX._20,
     gap: scale(12),
     paddingTop: spacingY._15,
     borderTopColor: colors.neutral700,

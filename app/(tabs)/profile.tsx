@@ -79,7 +79,6 @@ const Profile = () => {
         <Header
           title="Profile"
           style={{ marginVertical: spacingY._10 }}
-          leftIcon={<BackButton />}
         />
         {/* user info  */}
         <View style={styles.userInfo}>

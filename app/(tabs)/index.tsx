@@ -11,12 +11,15 @@ import { colors, spacingX, spacingY } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { verticalScale } from "@/utils/styling";
-import { MagnifyingGlass } from "phosphor-react-native";
+import { MagnifyingGlass, Plus } from "phosphor-react-native";
 import HomeCard from "@/components/HomeCard";
 import TransactionList from "@/components/TransactionList";
+import Button from "@/components/Button";
+import { useRouter } from "expo-router";
 
 const Home = () => {
   const { user } = useAuth();
+  const router = useRouter();
   console.log("user", user);
 
   return (
@@ -56,6 +59,13 @@ const Home = () => {
             title="All Transactions"
           />
         </ScrollView>
+
+        <Button
+          onPress={() => router.push("/(modals)/transactionModal")}
+          style={styles.floatingButton}
+        >
+          <Plus color={colors.black} weight="bold" size={verticalScale(24)} />
+        </Button>
       </View>
     </ScreenWrapper>
   );

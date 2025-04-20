@@ -6,6 +6,8 @@ import { scale, verticalScale } from "@/utils/styling";
 import { ArrowDown, ArrowUp, DotsThreeOutline } from "phosphor-react-native";
 
 const HomeCard = () => {
+  const price = 500000;
+
   return (
     <ImageBackground
       resizeMode="stretch"
@@ -26,7 +28,7 @@ const HomeCard = () => {
             />
           </View>
           <Typo color={colors.black} size={30} fontWeight={"bold"}>
-            500000 Kyats
+            {price.toLocaleString()} Kyats
           </Typo>
         </View>
 
@@ -48,7 +50,7 @@ const HomeCard = () => {
             </View>
             <View style={{ alignSelf: "center" }}>
               <Typo size={17} fontWeight={"600"} color={colors.green}>
-                500000 Kyats
+                {price.toLocaleString()} Kyats
               </Typo>
             </View>
           </View>
@@ -64,12 +66,12 @@ const HomeCard = () => {
                 />
               </View>
               <Typo size={16} color={colors.neutral700} fontWeight={"500"}>
-                Income
+                Expense
               </Typo>
             </View>
             <View style={{ alignSelf: "center" }}>
               <Typo size={17} fontWeight={"600"} color={colors.rose}>
-                500000 Kyats
+                {price.toLocaleString()} Kyats
               </Typo>
             </View>
           </View>
