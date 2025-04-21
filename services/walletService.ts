@@ -1,6 +1,15 @@
 import { firestore } from "@/config/firebase";
 import { ResponseType, WalletType } from "@/types";
-import { collection, deleteDoc, doc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+  writeBatch,
+} from "firebase/firestore";
 
 export const createOrUpdateWallet = async (
   walletData: Partial<WalletType>
@@ -33,11 +42,26 @@ export const createOrUpdateWallet = async (
 export const deleteWallet = async (walletId: string): Promise<ResponseType> => {
   try {
     const walletRef = doc(firestore, "wallets", walletId);
-    await deleteDoc(walletRef);
-
     //TODO: delete related transactions
+    //1. Get all related transactions
+    const transactionsRef = collection(firestore, "transactions");
+    const q = query(transactionsRef, where("walletId", "==", walletId));
+    const transactionSnapshots = await getDocs(q);
 
-    return { success: true, msg: "Wallet deleted successfully" };
+    //2. Batch delete
+    const batch = writeBatch(firestore);
+    transactionSnapshots.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    //3. Delete the wallet
+    batch.delete(walletRef);
+    await batch.commit();
+
+    return {
+      success: true,
+      msg: "Wallet and related transactions deleted successfully",
+    };
   } catch (error: any) {
     console.log("Error deleting wallet");
     return { success: false, msg: error.message };

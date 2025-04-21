@@ -27,6 +27,21 @@ import { orderBy, where } from "firebase/firestore";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import {
+  createOrUpdateTransaction,
+  deleteTransaction,
+} from "@/services/transactionService";
+
+type TransactionParamType = {
+  id: string;
+  type: string;
+  amount: string;
+  category?: string;
+  date: string;
+  description?: string;
+  uid?: string;
+  walletId: string;
+};
 
 const TransactionModal = () => {
   const [transaction, setTransaction] = useState<TransactionType>({
@@ -41,7 +56,8 @@ const TransactionModal = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const oldTransaction: TransactionParamType = useLocalSearchParams();
+  console.log("tparam", oldTransaction);
 
   const { user } = useAuth();
   const constraints = useMemo(
@@ -55,12 +71,15 @@ const TransactionModal = () => {
   } = useFetchData<WalletType>("wallets");
 
   useEffect(() => {
-    if (params?.id || params?.name) {
-      setTransaction((prev) => ({
-        ...prev,
-        id: params.id as string,
-        name: params.name as string,
-      }));
+    if (oldTransaction?.id) {
+      setTransaction({
+        type: oldTransaction.type,
+        amount: Number(oldTransaction.amount),
+        description: oldTransaction.description || "",
+        category: oldTransaction.category,
+        date: new Date(oldTransaction.date),
+        walletId: oldTransaction.walletId,
+      });
     }
   }, []);
 
@@ -77,27 +96,30 @@ const TransactionModal = () => {
       date,
       description,
       walletId,
-      category,
       uid: user?.uid,
+      ...(type === "expense" && { category }),
     };
 
-    console.log("Transaction data", data);
-    // if (params?.id) {
-    //   data.id = params?.id as string;
-    // }
-    // const res = await createOrUpdateWallet(data);
-    // setIsLoading(false);
-    // if (res.success) {
-    //   router.back();
-    // } else {
-    //   Alert.alert("Wallet", res.msg);
-    // }
+    if (oldTransaction?.id) {
+      data.id = oldTransaction?.id as string;
+    }
+
+    const res = await createOrUpdateTransaction(data);
+    setIsLoading(false);
+    if (res.success) {
+      router.back();
+    } else {
+      Alert.alert("Wallet", res.msg);
+    }
   };
 
   const onDelete = async () => {
-    if (!params?.id) return;
+    if (!oldTransaction?.id) return;
     setIsLoading(true);
-    const res = await deleteWallet(params?.id as string);
+    const res = await deleteTransaction(
+      oldTransaction?.walletId,
+      oldTransaction?.id
+    );
     if (res.success) {
       router.back();
     } else {
@@ -108,7 +130,7 @@ const TransactionModal = () => {
   const showDeleteAlert = () => {
     Alert.alert(
       "Confirm",
-      "Are you sure you want to delete this wallet? \n This action will remove all the related transactions",
+      "Are you sure you want to delete this transaction?",
       [
         {
           text: "Cancel",
@@ -128,7 +150,7 @@ const TransactionModal = () => {
     <ModalWrapper>
       <View style={styles.container}>
         <Header
-          title={params?.id ? "Update Transaction" : "Add Transaction"}
+          title={oldTransaction?.id ? "Update Transaction" : "Add Transaction"}
           leftIcon={<BackButton />}
           style={{ marginBottom: spacingY._10 }}
         />
@@ -157,7 +179,11 @@ const TransactionModal = () => {
               valueField="value"
               value={transaction.type}
               onChange={(item) => {
-                setTransaction({ ...transaction, type: item.value });
+                setTransaction((prev) => ({
+                  ...prev,
+                  type: item.value,
+                  category: item.value === "income" ? "" : prev.category,
+                }));
               }}
             />
           </View>
@@ -311,7 +337,7 @@ const TransactionModal = () => {
 
         {/* footer button  */}
         <View style={styles.footer}>
-          {params?.id && !isLoading && (
+          {oldTransaction?.id && !isLoading && (
             <Button
               onPress={showDeleteAlert}
               style={{
@@ -328,7 +354,7 @@ const TransactionModal = () => {
           )}
           <Button loading={isLoading} onPress={onSubmit} style={{ flex: 1 }}>
             <Typo color={colors.black} fontWeight={"700"}>
-              {params?.id ? "Update Transaction" : "Add Transaction"}
+              {oldTransaction?.id ? "Update Transaction" : "Add Transaction"}
             </Typo>
           </Button>
         </View>

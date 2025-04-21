@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React from "react";
+import React, { useMemo } from "react";
 import Typo from "@/components/Typo";
 import { colors, spacingX, spacingY } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
@@ -16,11 +16,26 @@ import HomeCard from "@/components/HomeCard";
 import TransactionList from "@/components/TransactionList";
 import Button from "@/components/Button";
 import { useRouter } from "expo-router";
+import { limit, orderBy, where } from "firebase/firestore";
+import { useFetchData } from "@/hooks/useFetchData";
+import { TransactionType } from "@/types";
 
 const Home = () => {
   const { user } = useAuth();
   const router = useRouter();
   console.log("user", user);
+
+  const constraints = useMemo(
+    () => [where("uid", "==", user?.uid), orderBy("date", "desc"), limit(30)],
+    [user?.uid]
+  );
+
+  const { data, isLoading, error } = useFetchData<TransactionType>(
+    "transactions",
+    constraints
+  );
+
+  console.log("transactions", data);
 
   return (
     <ScreenWrapper>
@@ -53,8 +68,8 @@ const Home = () => {
           </View>
 
           <TransactionList
-            data={[]}
-            loading={false}
+            data={data}
+            loading={isLoading}
             emptyListMessage="No transactions added yet"
             title="All Transactions"
           />

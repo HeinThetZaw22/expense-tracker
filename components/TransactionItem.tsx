@@ -1,16 +1,29 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { TransactionItemProps } from "@/types";
-import { expenseCategories } from "@/constants/data";
+import { expenseCategories, incomeCategory } from "@/constants/data";
 import { colors, radius, spacingX, spacingY } from "@/constants/theme";
 import { verticalScale } from "@/utils/styling";
 import Typo from "./Typo";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { Timestamp } from "firebase/firestore";
 
 const TransactionItem = ({ item, index, onClick }: TransactionItemProps) => {
-  let category = expenseCategories["groceries"];
-  const IconComponent = category.icon;
-  const price = 93000;
+  let category =
+    item?.type === "income"
+      ? incomeCategory
+      : expenseCategories[item.category!];
+  if (!category) {
+    return null;
+  }
+  const IconComponent = category?.icon;
+
+  const date = (item?.date as Timestamp)
+    ?.toDate()
+    ?.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+    });
 
   return (
     <Animated.View
@@ -19,7 +32,7 @@ const TransactionItem = ({ item, index, onClick }: TransactionItemProps) => {
         .damping(13)}
     >
       <TouchableOpacity style={styles.row} onPress={() => onClick(item)}>
-        <View style={[styles.icon, { backgroundColor: category.bgColor }]}>
+        <View style={[styles.icon, { backgroundColor: category?.bgColor }]}>
           {IconComponent && (
             <IconComponent
               size={verticalScale(25)}
@@ -35,15 +48,20 @@ const TransactionItem = ({ item, index, onClick }: TransactionItemProps) => {
             color={colors.neutral400}
             textProps={{ numberOfLines: 1 }}
           >
-            {item?.description || "Paid shoe bill"}
+            {item?.description || ""}
           </Typo>
         </View>
         <View style={styles.amountDate}>
-          <Typo fontWeight={"500"} color={colors.primary}>
-            - {price.toLocaleString()} Kyats
+          <Typo
+            size={16}
+            fontWeight={"500"}
+            color={item.type === "income" ? colors.primary : colors.rose}
+          >
+            {item.type === "income" ? "+" : "-"}
+            {item.amount?.toLocaleString()} Kyats
           </Typo>
           <Typo size={12} color={colors.neutral400}>
-            Jan 5
+            {date}
           </Typo>
         </View>
       </TouchableOpacity>
@@ -63,7 +81,7 @@ const styles = StyleSheet.create({
     padding: spacingY._10,
     paddingHorizontal: spacingY._10,
     borderRadius: radius._17,
-    marginVertical: spacingY._5
+    marginVertical: spacingY._5,
   },
   icon: {
     height: verticalScale(44),

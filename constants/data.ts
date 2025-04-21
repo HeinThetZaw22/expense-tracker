@@ -4,6 +4,30 @@ import { colors } from "./theme";
 import * as Icons from "phosphor-react-native"; // Import all icons dynamically
 
 export const expenseCategories: ExpenseCategoriesType = {
+  food: {
+    label: "Food",
+    value: "food",
+    icon: Icons.ForkKnife,
+    bgColor: "#be185d", // Dark Red
+  },
+  personal: {
+    label: "Personal",
+    value: "personal",
+    icon: Icons.User,
+    bgColor: "#a21caf", // Deep Pink
+  },
+  savings: {
+    label: "Savings",
+    value: "savings",
+    icon: Icons.PiggyBank,
+    bgColor: "#065F46", // Deep Teal Green
+  },
+  clothing: {
+    label: "Clothing",
+    value: "clothing",
+    icon: Icons.TShirt,
+    bgColor: "#7c3aed", // Dark Indigo
+  },
   groceries: {
     label: "Groceries",
     value: "groceries",
@@ -34,12 +58,6 @@ export const expenseCategories: ExpenseCategoriesType = {
     icon: Icons.FilmStrip,
     bgColor: "#0f766e", // Darker Red-Brown
   },
-  dining: {
-    label: "Dining",
-    value: "dining",
-    icon: Icons.ForkKnife,
-    bgColor: "#be185d", // Dark Red
-  },
   health: {
     label: "Health",
     value: "health",
@@ -51,24 +69,6 @@ export const expenseCategories: ExpenseCategoriesType = {
     value: "insurance",
     icon: Icons.ShieldCheck,
     bgColor: "#404040", // Dark Gray
-  },
-  savings: {
-    label: "Savings",
-    value: "savings",
-    icon: Icons.PiggyBank,
-    bgColor: "#065F46", // Deep Teal Green
-  },
-  clothing: {
-    label: "Clothing",
-    value: "clothing",
-    icon: Icons.TShirt,
-    bgColor: "#7c3aed", // Dark Indigo
-  },
-  personal: {
-    label: "Personal",
-    value: "personal",
-    icon: Icons.User,
-    bgColor: "#a21caf", // Deep Pink
   },
   others: {
     label: "Others",

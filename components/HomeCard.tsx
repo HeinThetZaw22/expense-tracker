@@ -1,12 +1,41 @@
 import { ImageBackground, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useMemo } from "react";
 import Typo from "./Typo";
 import { colors, spacingX, spacingY } from "@/constants/theme";
 import { scale, verticalScale } from "@/utils/styling";
 import { ArrowDown, ArrowUp, DotsThreeOutline } from "phosphor-react-native";
+import { useAuth } from "@/contexts/authContext";
+import { orderBy, where } from "firebase/firestore";
+import { useFetchData } from "@/hooks/useFetchData";
+import { WalletType } from "@/types";
 
 const HomeCard = () => {
-  const price = 500000;
+  const { user } = useAuth();
+
+  const constraints = useMemo(
+    () => [where("uid", "==", user?.uid), orderBy("created", "desc")],
+    [user?.uid]
+  );
+
+  const { data, isLoading, error } = useFetchData<WalletType>(
+    "wallets",
+    constraints
+  );
+
+  const getTotals = () => {
+    if (!data) return { totalAmount: 0, totalIncome: 0, totalExpenses: 0 };
+
+    return data.reduce(
+      (acc, wallet) => {
+        (acc.totalAmount += wallet.amount || 0),
+          (acc.totalIncome += wallet.totalIncome || 0),
+          (acc.totalExpenses += wallet.totalExpenses || 0);
+        return acc;
+      },
+      { totalAmount: 0, totalIncome: 0, totalExpenses: 0 }
+    );
+  };
+  const totalBalance = getTotals();
 
   return (
     <ImageBackground
@@ -28,7 +57,9 @@ const HomeCard = () => {
             />
           </View>
           <Typo color={colors.black} size={30} fontWeight={"bold"}>
-            {price.toLocaleString()} Kyats
+            {isLoading
+              ? "----"
+              : `${totalBalance.totalAmount.toLocaleString()} Kyats`}
           </Typo>
         </View>
 
@@ -50,7 +81,9 @@ const HomeCard = () => {
             </View>
             <View style={{ alignSelf: "center" }}>
               <Typo size={17} fontWeight={"600"} color={colors.green}>
-                {price.toLocaleString()} Kyats
+                {isLoading
+                  ? "----"
+                  : `  ${totalBalance.totalIncome.toLocaleString()} Kyats `}
               </Typo>
             </View>
           </View>
@@ -71,7 +104,9 @@ const HomeCard = () => {
             </View>
             <View style={{ alignSelf: "center" }}>
               <Typo size={17} fontWeight={"600"} color={colors.rose}>
-                {price.toLocaleString()} Kyats
+                {isLoading
+                  ? "----"
+                  : ` ${totalBalance.totalExpenses.toLocaleString()} Kyats`}
               </Typo>
             </View>
           </View>
