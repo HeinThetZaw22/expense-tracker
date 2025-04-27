@@ -2,7 +2,6 @@ import { firestore } from "@/config/firebase";
 import { colors } from "@/constants/theme";
 import { ResponseType, TransactionType } from "@/types";
 import {
-  getLast12Months,
   getThisWeekDays,
   getThisYearMonths,
   getYearsRange,
@@ -16,6 +15,7 @@ import {
   where,
 } from "firebase/firestore";
 
+// not currently using this service
 export const fetchWeeklyStats = async (uid: string): Promise<ResponseType> => {
   try {
     // const last7Days = getLast7Days();
@@ -99,8 +99,8 @@ export const fetchMonthlyStats = async (uid: string): Promise<ResponseType> => {
 
     const snapshot = await getDocs(q);
 
-    // const formattedStats = getLast12Months(); 
-    const formattedStats = getThisYearMonths(); 
+    // const formattedStats = getLast12Months();
+    const formattedStats = getThisYearMonths();
     snapshot.forEach((doc) => {
       const data = doc.data() as TransactionType;
       const txDate = (data.date as Timestamp).toDate();
@@ -139,7 +139,6 @@ export const fetchMonthlyStats = async (uid: string): Promise<ResponseType> => {
     return { success: false, msg: error.message };
   }
 };
-
 interface YearlyStat {
   year: string;
   fullDate: string;

@@ -36,7 +36,7 @@ const TransactionList = ({
   return (
     <View style={styles.container}>
       {title && (
-        <Typo size={20} style={{ paddingTop: 20 }} fontWeight={"500"}>
+        <Typo size={20} fontWeight={"500"}>
           {title}
         </Typo>
       )}
@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
   container: {
     gap: spacingY._17,
     marginBottom: verticalScale(10),
+    paddingTop: 20
   },
   list: {
     minHeight: 3,

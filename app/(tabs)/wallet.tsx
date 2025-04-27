@@ -46,7 +46,7 @@ const Wallet = () => {
           <View style={{ alignItems: "center" }}>
             <Typo size={28} fontWeight={"400"}>
               {" "}
-              {getTotalBalance()?.toFixed(2)} Kyats
+              {getTotalBalance()?.toLocaleString()} Kyats
             </Typo>
             <Typo size={16} color={colors.neutral300}>
               Total Balance
