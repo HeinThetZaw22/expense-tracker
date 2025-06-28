@@ -68,7 +68,7 @@ const TransactionModal = () => {
     data: wallets,
     isLoading: isFetchingWallets,
     error,
-  } = useFetchData<WalletType>("wallets");
+  } = useFetchData<WalletType>("wallets", constraints);
 
   useEffect(() => {
     if (oldTransaction?.id) {
